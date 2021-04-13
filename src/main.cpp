@@ -166,7 +166,7 @@ static void AziotSendTelemetry(const StaticJsonDocument<desiredCapacity>& jsonDo
 static GroveBoard Board_;
 static GrovePIR Sensor_(&Board_.GroveBCM27);
 
-static unsigned long TelemetryInterval_ = 15000;	// [msec.]
+static unsigned long TelemetryInterval_ = TELEMETRY_INTERVAL;   // [msec.]
 
 static void ReceivedTwinDocument(const char* json, const char* requestId)
 {
