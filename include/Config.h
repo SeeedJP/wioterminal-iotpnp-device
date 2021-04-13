@@ -6,6 +6,8 @@ constexpr int DISPLAY_BRIGHTNESS = 127;         // 0-255
 constexpr int CAPTURE_INTERVAL = 100;           // [msec.]
 constexpr int TELEMETRY_INTERVAL = 60 * 1000;   // [msec.]
 #elif defined(PROJECT_WIOTERMINAL_TEMP_HUMI)
+constexpr int CAPTURE_INTERVAL = 1000;          // [msec.]
+constexpr int TELEMETRY_INTERVAL = 60 * 1000;   // [msec.]
 #elif defined(PROJECT_WIOTERMINAL_ACCUMULATION_COUNTER)
 #else
 #error No project macro defined.
