@@ -8,6 +8,14 @@
 </div>
 <br>
 
+## Temperature and Humidity for Wio Terminal
+
+<br>
+<div>
+<img src="media/wioterminal-temp-humi.jpg" width="400">
+</div>
+<br>
+
 ## License
 
 [MIT](LICENSE.txt)

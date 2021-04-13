@@ -247,6 +247,87 @@ static void ProjectLoop()
 }
 
 #elif defined(PROJECT_WIOTERMINAL_TEMP_HUMI)
+
+static GroveBoard Board_;
+static GroveTempHumiSHT31 Sensor_(&Board_.GroveI2C1);
+
+static unsigned long TelemetryInterval_ = TELEMETRY_INTERVAL;   // [msec.]
+
+static void ReceivedTwinDocument(const char* json, const char* requestId)
+{
+	StaticJsonDocument<JSON_MAX_SIZE> doc;
+	if (deserializeJson(doc, json)) return;
+	JsonVariant ver = doc["desired"]["$version"];
+	if (ver.isNull()) return;
+    
+	JsonVariant interval = doc["desired"]["TelemetryInterval"];
+	if (!interval.isNull())
+	{
+		Serial.printf("TelemetryInterval = %d\n", interval.as<int>());
+		TelemetryInterval_ = interval.as<int>() * 1000;
+	}
+	AziotSendConfirm<int>("twin_confirm", "TelemetryInterval", TelemetryInterval_ / 1000, 200, interval.isNull() ? 1 : ver.as<int>());
+}
+
+static void ReceivedTwinDesiredPatch(const char* json, const char* version)
+{
+	StaticJsonDocument<JSON_MAX_SIZE> doc;
+	if (deserializeJson(doc, json)) return;
+	JsonVariant ver = doc["$version"];
+	if (ver.isNull()) return;
+
+	JsonVariant interval = doc["TelemetryInterval"];
+	if (!interval.isNull())
+	{
+		Serial.printf("TelemetryInterval = %d\n", interval.as<int>());
+		TelemetryInterval_ = interval.as<int>() * 1000;
+
+		AziotSendConfirm<int>("twin_confirm", "TelemetryInterval", TelemetryInterval_ / 1000, 200, ver.as<int>());
+	}
+}
+
+static void ProjectSetup()
+{
+    Board_.GroveI2C1.Enable();
+    Sensor_.Init();
+
+    AziotHub_.ReceivedTwinDocumentCallback = ReceivedTwinDocument;
+    AziotHub_.ReceivedTwinDesiredPatchCallback = ReceivedTwinDesiredPatch;
+}
+
+static void ProjectLoop()
+{
+    static unsigned long nextCaptureTime = 0;
+    static unsigned long nextTelemetrySendTime = 0;
+
+    if (millis() >= nextCaptureTime)
+    {
+        Sensor_.Read();
+        const float temp = Sensor_.Temperature;
+        const float humi = Sensor_.Humidity;
+
+        const time_t now = TimeManager_.GetEpochTime();
+        char nowStr[32];
+        strftime(nowStr, sizeof(nowStr), "%H:%M:%S %Z", localtime(&now));
+        Display_.Printf("%s - %.1f[C]  %.1f[%%]\n", nowStr, temp, humi);
+
+        if (millis() >= nextTelemetrySendTime)
+        {
+            if (AziotIsConnected())
+            {
+                StaticJsonDocument<JSON_MAX_SIZE> doc;
+                doc["temp"] = temp;
+                doc["humi"] = humi;
+                AziotSendTelemetry<JSON_MAX_SIZE>(doc);
+
+                nextTelemetrySendTime = millis() + TelemetryInterval_;
+            }
+        }
+
+        nextCaptureTime = millis() + CAPTURE_INTERVAL;
+    }
+}
+
 #elif defined(PROJECT_WIOTERMINAL_ACCUMULATION_COUNTER)
 #else
 #error No project macro defined.

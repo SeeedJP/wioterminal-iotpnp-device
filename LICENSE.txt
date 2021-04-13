@@ -1,5 +1,6 @@
 ================================================================================
 Human Presence Detection for Wio Terminal
+Temperature and Humidity for Wio Terminal
 ================================================================================
 
 MIT License
