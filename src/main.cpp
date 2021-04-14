@@ -245,7 +245,7 @@ static void ProjectLoop()
         {
             const time_t now = TimeManager_.GetEpochTime();
             char nowStr[32];
-            strftime(nowStr, sizeof(nowStr), "%Y/%m/%d %H:%M:%S %Z", localtime(&now));
+            strftime(nowStr, sizeof(nowStr), "%H:%M:%S %Z", localtime(&now));
             Display_.Printf("%s - %s\n", nowStr, sensorValue ? "Detected" : "Gone");
         }
 
