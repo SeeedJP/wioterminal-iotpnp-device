@@ -340,6 +340,90 @@ static void ProjectLoop()
 }
 
 #elif defined(PROJECT_WIOTERMINAL_ACCUMULATION_COUNTER)
+
+static GroveBoard Board_;
+static GroveUltrasonicRanger Sensor_(&Board_.GroveBCM27);
+
+static unsigned long TelemetryInterval_ = TELEMETRY_INTERVAL;   // [sec.]
+static int DistanceThreshold_ = DISTANCE_THRESHOLD;             // [cm]
+
+static void ReceivedTwinDocument(const char* json, const char* requestId)
+{
+	StaticJsonDocument<JSON_MAX_SIZE> doc;
+	if (deserializeJson(doc, json)) return;
+	if (doc["desired"]["$version"].isNull()) return;
+    
+    if (AziotUpdateWritableProperty("TelemetryInterval", &TelemetryInterval_, doc["desired"]["$version"], doc["desired"], doc["reported"]))
+    {
+		Serial.printf("TelemetryInterval = %d\n", TelemetryInterval_);
+    }
+    if (AziotUpdateWritableProperty("distanceThreshold", &DistanceThreshold_, doc["desired"]["$version"], doc["desired"], doc["reported"]))
+    {
+		Serial.printf("distanceThreshold = %d\n", DistanceThreshold_);
+    }
+}
+
+static void ReceivedTwinDesiredPatch(const char* json, const char* version)
+{
+	StaticJsonDocument<JSON_MAX_SIZE> doc;
+	if (deserializeJson(doc, json)) return;
+	if (doc["$version"].isNull()) return;
+
+    if (AziotUpdateWritableProperty("TelemetryInterval", &TelemetryInterval_, doc["$version"], doc.as<JsonVariant>()))
+    {
+		Serial.printf("TelemetryInterval = %d\n", TelemetryInterval_);
+    }
+    if (AziotUpdateWritableProperty("distanceThreshold", &DistanceThreshold_, doc["$version"], doc.as<JsonVariant>()))
+    {
+		Serial.printf("distanceThreshold = %d\n", DistanceThreshold_);
+    }
+}
+
+static void ProjectSetup()
+{
+    Board_.GroveBCM27.Enable();
+    Sensor_.Init();
+
+    AziotHub_.ReceivedTwinDocumentCallback = ReceivedTwinDocument;
+    AziotHub_.ReceivedTwinDesiredPatchCallback = ReceivedTwinDesiredPatch;
+}
+
+static void ProjectLoop()
+{
+    static int accumulationCount = 0;
+    static unsigned long nextCaptureTime = 0;
+    static int sensorValue = std::numeric_limits<int>::max();
+    static unsigned long nextTelemetrySendTime = 0;
+
+    if (millis() >= nextCaptureTime)
+    {
+        const auto preSensorValue = sensorValue;
+        Sensor_.Read();
+        sensorValue = static_cast<int>(Sensor_.Distance); // [mm]
+
+        if (preSensorValue > DistanceThreshold_ && sensorValue <= DistanceThreshold_) accumulationCount++;
+
+        const time_t now = TimeManager_.GetEpochTime();
+        char nowStr[32];
+        strftime(nowStr, sizeof(nowStr), "%H:%M:%S %Z", localtime(&now));
+        Display_.Printf("%s - %4d[mm]  %d\n", nowStr, sensorValue, accumulationCount);
+
+        if (millis() >= nextTelemetrySendTime)
+        {
+            if (AziotIsConnected())
+            {
+                StaticJsonDocument<JSON_MAX_SIZE> doc;
+                doc["accumulationCount"] = accumulationCount;
+                AziotSendTelemetry<JSON_MAX_SIZE>(doc);
+
+                nextTelemetrySendTime = millis() + TelemetryInterval_ * 1000;
+            }
+        }
+
+        nextCaptureTime = millis() + CAPTURE_INTERVAL;
+    }
+}
+
 #else
 #error No project macro defined.
 #endif

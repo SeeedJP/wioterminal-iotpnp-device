@@ -1,6 +1,7 @@
 ================================================================================
 Human Presence Detection for Wio Terminal
 Temperature and Humidity for Wio Terminal
+Accumulation Counter for Wio Terminal
 ================================================================================
 
 MIT License

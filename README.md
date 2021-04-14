@@ -16,6 +16,14 @@
 </div>
 <br>
 
+## Accumulation Counter for Wio Terminal
+
+<br>
+<div>
+<img src="media/wioterminal-accumulation-counter.jpg" width="400">
+</div>
+<br>
+
 ## License
 
 [MIT](LICENSE.txt)
