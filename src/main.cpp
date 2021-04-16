@@ -190,7 +190,7 @@ static void AziotSendTelemetry(const StaticJsonDocument<desiredCapacity>& jsonDo
 ////////////////////////////////////////////////////////////////////////////////
 // Project Specific
 
-#if defined(PROJECT_WIOTERMINAL_HUMAN_DETECTION)
+#if defined(PROJECT_WIOTERMINAL_HUMAN_DETECTION_PIR)
 
 static GroveBoard Board_;
 static GrovePIR Sensor_(&Board_.GroveBCM27);
@@ -266,7 +266,7 @@ static void ProjectLoop()
     }
 }
 
-#elif defined(PROJECT_WIOTERMINAL_TEMP_HUMI)
+#elif defined(PROJECT_WIOTERMINAL_TEMP_HUMI_SHT31)
 
 static GroveBoard Board_;
 static GroveTempHumiSHT31 Sensor_(&Board_.GroveI2C1);
@@ -339,7 +339,7 @@ static void ProjectLoop()
     }
 }
 
-#elif defined(PROJECT_WIOTERMINAL_ACCUMULATION_COUNTER)
+#elif defined(PROJECT_WIOTERMINAL_ACCUMULATION_COUNTER_ULTRASONIC)
 
 static GroveBoard Board_;
 static GroveUltrasonicRanger Sensor_(&Board_.GroveBCM27);
