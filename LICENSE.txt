@@ -1,7 +1,7 @@
 ================================================================================
-Human Presence Detection for Wio Terminal
-Temperature and Humidity for Wio Terminal
-Accumulation Counter for Wio Terminal
+Human Presence Detection (PIR) for Wio Terminal
+Temperature & Humidity Sensor (SHT31) for Wio Terminal
+Accumulation Counter (Ultrasonic) for Wio Terminal
 ================================================================================
 
 MIT License
