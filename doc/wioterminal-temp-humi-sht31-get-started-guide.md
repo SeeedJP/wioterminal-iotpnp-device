@@ -23,7 +23,7 @@ Connect Temperature & Humidity Sensor (SHT31) for Wio Terminal device to your Az
 
 This document describes how to connect Temperature & Humidity Sensor (SHT31) for Wio Terminal to Azure IoT Hub using the Azure IoT Explorer with certified device application and device models.
 
-IoT Plug and Play certified device simplifies the process of building devices without custom device code. Using Solution builders can integrated quickly using the certified IoT Plug and Play enabled device based on Azure IoT Central as well as third-party solutions.
+IoT Plug and Play certified device simplifies the process of building devices without custom device code. Using Solution builders can be integrated quickly using the certified IoT Plug and Play enabled device based on Azure IoT Central as well as third-party solutions.
 
 This getting started guide provides step by step instruction on getting the device provisioned to Azure IoT Hub using Device Provisioning Service (DPS) and using Azure IoT Explorer to interact with device's capabilities.
 
@@ -81,10 +81,10 @@ Wio Terminal uses a serial console command line tool to configure network and Az
 In order to connect to Azure IoT, please follow steps below :
 
 1. Assemble
-2. Update the firmware of Wi-Fi module
-3. Install Azure IoT firmware
+2. Update the Wi-Fi Firmware
+3. Install Azure IoT Firmware
 4. Boot Wio Terminal into the configuration mode
-5. Configure Wi-Fi
+5. Configuring Wi-Fi
 6. Reboot Wio Terminal
 
 ## 1. Assemble
@@ -109,15 +109,15 @@ Please follow instruction at [Wio Terminal's network overview page](https://wiki
 4. Confirm the Wio Terminal appears as a storage device in your PC as "Arduino"
 5. Copy **wioterminal-temp-humi-sht31.uf2** to the **Arduino** drive
 
-## 4. Booting into the configuration mode
+## 4. Boot Wio Terminal into the configuration mode
 
 1. Turn on Wio Terminal while holding 3 buttons on the top of the device
 2. Confirm LCD displays `In configuration mode`
 
 ## 5. Configuring Wi-Fi
 
-1. Start the serial terminal applicaiton and configure the serial port number and baudrate
-2. In the serial terminal applicaiton, type `help`  
+1. Start the serial terminal application and configure the serial port number and baudrate
+2. In the serial terminal application, type `help`  
 
     Output example:
 
@@ -158,7 +158,7 @@ Slide power switch to reset Wio Terminal.
 <a name="ConnecttoAzureIoT"></a>
 # Connect to Azure IoT
 
-Depeinding on the authentication you would like to use, configure device authentication using set_az* command in the configuration mode.
+Depending on the authentication you would like to use, configure device authentication using set_az* command in the configuration mode.
 
 ## For Azure IoT Central
 
