@@ -24,6 +24,14 @@
 </div>
 <br>
 
+## Watchdog (VL53L0X) for Wio Terminal
+
+<br>
+<div>
+<img src="media/wioterminal-watchdog-vl53l0x.jpg" width="400">
+</div>
+<br>
+
 ## License
 
 [MIT](LICENSE.txt)

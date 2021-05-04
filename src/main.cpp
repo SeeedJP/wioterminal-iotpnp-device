@@ -424,6 +424,116 @@ static void ProjectLoop()
     }
 }
 
+#elif defined(PROJECT_WIOTERMINAL_WATCHDOG_VL53L0X)
+
+#include <Seeed_vl53l0x.h>
+
+static Seeed_vl53l0x VL53L0X_;
+
+static unsigned long Period_ = PERIOD;                          // [sec.]
+static int DistanceThreshold_ = DISTANCE_THRESHOLD;             // [cm]
+static int CountInPeriodThreshold_ = COUNT_IN_PERIOD_THRESHOLD;
+
+static void ReceivedTwinDocument(const char* json, const char* requestId)
+{
+	StaticJsonDocument<JSON_MAX_SIZE> doc;
+	if (deserializeJson(doc, json)) return;
+	if (doc["desired"]["$version"].isNull()) return;
+    
+    if (AziotUpdateWritableProperty("period", &Period_, doc["desired"]["$version"], doc["desired"], doc["reported"]))
+    {
+		Serial.printf("period = %d\n", Period_);
+    }
+    if (AziotUpdateWritableProperty("distanceThreshold", &DistanceThreshold_, doc["desired"]["$version"], doc["desired"], doc["reported"]))
+    {
+		Serial.printf("distanceThreshold = %d\n", DistanceThreshold_);
+    }
+    if (AziotUpdateWritableProperty("countInPeriodThreshold", &CountInPeriodThreshold_, doc["desired"]["$version"], doc["desired"], doc["reported"]))
+    {
+		Serial.printf("countInPeriodThreshold = %d\n", CountInPeriodThreshold_);
+    }
+}
+
+static void ReceivedTwinDesiredPatch(const char* json, const char* version)
+{
+	StaticJsonDocument<JSON_MAX_SIZE> doc;
+	if (deserializeJson(doc, json)) return;
+	if (doc["$version"].isNull()) return;
+
+    if (AziotUpdateWritableProperty("period", &Period_, doc["$version"], doc.as<JsonVariant>()))
+    {
+		Serial.printf("period = %d\n", Period_);
+    }
+    if (AziotUpdateWritableProperty("distanceThreshold", &DistanceThreshold_, doc["$version"], doc.as<JsonVariant>()))
+    {
+		Serial.printf("distanceThreshold = %d\n", DistanceThreshold_);
+    }
+    if (AziotUpdateWritableProperty("countInPeriodThreshold", &CountInPeriodThreshold_, doc["$version"], doc.as<JsonVariant>()))
+    {
+		Serial.printf("countInPeriodThreshold = %d\n", CountInPeriodThreshold_);
+    }
+}
+
+static void ProjectSetup()
+{
+    VL53L0X_Error status = VL53L0X_.VL53L0X_common_init();
+    if (status != VL53L0X_ERROR_NONE)
+    {
+        Display_.Printf("ERROR: VL53L0X_common_init()\n");
+        abort();
+    }
+    status = VL53L0X_.VL53L0X_single_ranging_init();
+    if (status != VL53L0X_ERROR_NONE)
+    {
+        Display_.Printf("ERROR: VL53L0X_single_ranging_init()\n");
+        abort();
+    }
+
+    AziotHub_.ReceivedTwinDocumentCallback = ReceivedTwinDocument;
+    AziotHub_.ReceivedTwinDesiredPatchCallback = ReceivedTwinDesiredPatch;
+}
+
+static void ProjectLoop()
+{
+    static int countInPeriod = 0;
+    static unsigned long nextCaptureTime = 0;
+    static int sensorValue = std::numeric_limits<int>::max();
+    static unsigned long nextPeriodTime = 0;
+
+    if (millis() >= nextCaptureTime)
+    {
+        const auto preSensorValue = sensorValue;
+
+        VL53L0X_RangingMeasurementData_t rangingMeasurementData;
+        VL53L0X_Error status = VL53L0X_.PerformSingleRangingMeasurement(&rangingMeasurementData);
+        sensorValue = rangingMeasurementData.RangeMilliMeter;   // [mm]
+
+        if (preSensorValue > DistanceThreshold_ && sensorValue <= DistanceThreshold_) countInPeriod++;
+
+        const time_t now = TimeManager_.GetEpochTime();
+        char nowStr[32];
+        strftime(nowStr, sizeof(nowStr), "%H:%M:%S %Z", localtime(&now));
+        Display_.Printf("%s - %4d[mm]  %d\n", nowStr, sensorValue, countInPeriod);
+
+        if (millis() >= nextPeriodTime)
+        {
+            if (AziotIsConnected())
+            {
+                StaticJsonDocument<JSON_MAX_SIZE> doc;
+                doc["countInPeriod"] = countInPeriod;
+                doc["status"] = countInPeriod >= CountInPeriodThreshold_ ? "run": "stop";
+                AziotSendTelemetry<JSON_MAX_SIZE>(doc);
+
+                nextPeriodTime = millis() + Period_ * 1000;
+            }
+
+            countInPeriod = 0;
+        }
+
+        nextCaptureTime = millis() + CAPTURE_INTERVAL;
+    }
+}
+
 #else
 #error No project macro defined.
 #endif
