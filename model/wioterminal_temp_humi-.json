@@ -1,45 +1,44 @@
 {
-    "@id": "dtmi:seeedkk:wioterminal:wioterminal_temp_humi;1",
-    "@type": "Interface",
-    "@context": "dtmi:dtdl:context;2",
-    "displayName": "Temperature and Humidity for Wio Terminal",
-    "contents": [
-      {
-        "@type": [
-          "Telemetry",
-          "Temperature"
-        ],
-        "name": "temp",
-        "unit": "degreeCelsius",
-        "displayName": {
-          "en": "Temperature",
-          "ja": "温度"
-        },
-        "schema": "double"
+  "@id": "dtmi:seeedkk:wioterminal:wioterminal_temp_humi;1",
+  "@type": "Interface",
+  "@context": "dtmi:dtdl:context;2",
+  "displayName": "Temperature and Humidity for Wio Terminal",
+  "contents": [
+    {
+      "@type": [
+        "Telemetry",
+        "Temperature"
+      ],
+      "name": "temp",
+      "unit": "degreeCelsius",
+      "displayName": {
+        "en": "Temperature",
+        "ja": "温度"
       },
-      {
-        "@type": "Telemetry",
-        "name": "humi",
-        "displayName": {
-          "en": "Humidity",
-          "ja": "湿度"
-        },
-        "schema": "double"
+      "schema": "double"
+    },
+    {
+      "@type": "Telemetry",
+      "name": "humi",
+      "displayName": {
+        "en": "Humidity",
+        "ja": "湿度"
       },
-      {
-        "@type": [
-          "Property",
-          "TimeSpan"
-        ],
-        "name": "TelemetryInterval",
-        "unit": "second",
-        "displayName": {
-          "en": "Telemetry interval",
-          "ja": "送信間隔"
-        },
-        "schema": "integer",
-        "writable": true
-      }
-    ]
-  }
-  
+      "schema": "double"
+    },
+    {
+      "@type": [
+        "Property",
+        "TimeSpan"
+      ],
+      "name": "TelemetryInterval",
+      "unit": "second",
+      "displayName": {
+        "en": "Telemetry interval",
+        "ja": "送信間隔"
+      },
+      "schema": "integer",
+      "writable": true
+    }
+  ]
+}
