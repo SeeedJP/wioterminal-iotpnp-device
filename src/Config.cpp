@@ -9,7 +9,7 @@ const char MODEL_ID[] = "dtmi:seeedkk:wioterminal:wioterminal_temp_humi;1";
 #elif defined(PROJECT_WIOTERMINAL_ACCUMULATION_COUNTER_ULTRASONIC)
 const char MODEL_ID[] = "dtmi:seeedkk:wioterminal:wioterminal_accumulation_counter;1";
 #elif defined(PROJECT_WIOTERMINAL_WATCHDOG_VL53L0X)
-const char MODEL_ID[] = "dtmi:seeedkk:wioterminal:wioterminal_watchdog_vl53l0x;1";
+const char MODEL_ID[] = "dtmi:seeedkk:wioterminal:wioterminal_watchdog;1";
 #else
 #error No project macro defined.
 #endif

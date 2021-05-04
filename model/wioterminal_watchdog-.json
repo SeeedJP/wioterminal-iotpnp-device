@@ -1,8 +1,8 @@
 {
-    "@id": "dtmi:seeedkk:wioterminal:wioterminal_watchdog_vl53l0x;1",
+    "@id": "dtmi:seeedkk:wioterminal:wioterminal_watchdog;1",
     "@type": "Interface",
     "@context": "dtmi:dtdl:context;2",
-    "displayName": "Watchdog (VL53L0X) for Wio Terminal",
+    "displayName": "Watchdog for Wio Terminal",
     "contents": [
       {
         "@type": "Telemetry",
