@@ -17,6 +17,9 @@ constexpr int CAPTURE_INTERVAL = 100;           // [msec.]
 constexpr int PERIOD = 60;                      // [sec.]
 constexpr int DISTANCE_THRESHOLD = 100;         // [mm]
 constexpr int COUNT_IN_PERIOD_THRESHOLD = 5;
+#elif defined(PROJECT_WIOTERMINAL_DUST_HM3301)
+constexpr int CAPTURE_INTERVAL = 1000;          // [msec.]
+constexpr int TELEMETRY_INTERVAL = 60;          // [sec.]
 #else
 #error No project macro defined.
 #endif
