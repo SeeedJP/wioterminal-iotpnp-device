@@ -32,6 +32,22 @@
 </div>
 <br>
 
+## Digital Signage for Wio Terminal
+
+<br>
+<div>
+<img src="media/wioterminal-digital-signage.jpg" width="400">
+</div>
+<br>
+
+## Dust Sensor (HM3301) for Wio Terminal
+
+<br>
+<div>
+<img src="media/wioterminal-dust-hm3301.jpg" width="400">
+</div>
+<br>
+
 ## License
 
 [MIT](LICENSE.txt)

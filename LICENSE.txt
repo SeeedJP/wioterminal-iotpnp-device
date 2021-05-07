@@ -3,6 +3,8 @@ Human Presence Detection (PIR) for Wio Terminal
 Temperature & Humidity Sensor (SHT31) for Wio Terminal
 Accumulation Counter (Ultrasonic) for Wio Terminal
 Watchdog (VL53L0X) for Wio Terminal
+Digital Signage for Wio Terminal
+Dust Sensor (HM3301) for Wio Terminal
 ================================================================================
 
 MIT License
