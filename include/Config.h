@@ -20,6 +20,7 @@ constexpr int COUNT_IN_PERIOD_THRESHOLD = 5;
 #elif defined(PROJECT_WIOTERMINAL_DUST_HM3301)
 constexpr int CAPTURE_INTERVAL = 1000;          // [msec.]
 constexpr int TELEMETRY_INTERVAL = 60;          // [sec.]
+#elif defined(PROJECT_WIOTERMINAL_DIGITAL_SIGNAGE)
 #else
 #error No project macro defined.
 #endif

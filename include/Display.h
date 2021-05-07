@@ -14,6 +14,7 @@ public:
     void Clear();
     void SetBrightness(int brightness);
     void Printf(const char* format, ...);
+    void PrintMessage(const char* message);
 
 private:
     LGFX& Gfx_;

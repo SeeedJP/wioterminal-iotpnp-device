@@ -30,6 +30,7 @@ void Display::Init()
 void Display::Clear()
 {
 	Gfx_.clear();
+    Gfx_.setCursor(0, 0);
 }
 
 void Display::SetBrightness(int brightness)
@@ -45,4 +46,11 @@ void Display::Printf(const char* format, ...)
     va_end(arg);
 
 	Gfx_.print(str);
+}
+
+void Display::PrintMessage(const char* message)
+{
+    Gfx_.setTextFont(&fonts::Font4);
+    Gfx_.setTextDatum(textdatum_t::middle_center);
+    Gfx_.drawString(message, Gfx_.width() / 2, Gfx_.height() / 2);
 }

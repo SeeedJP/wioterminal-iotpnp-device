@@ -178,8 +178,33 @@ static bool AziotUpdateWritableProperty(const char* name, T* value, const JsonVa
     return ret;
 }
 
-template <size_t desiredCapacity>
-static void AziotSendTelemetry(const StaticJsonDocument<desiredCapacity>& jsonDoc)
+template <typename T>
+static bool AziotUpdateReadOnlyProperty(const char* name, T* value, const JsonVariant& reported)
+{
+    bool ret = false;
+
+    JsonVariant reportedProperty = reported[name];
+
+	if (!reportedProperty.isNull())
+    {
+        *value = reportedProperty.as<T>();
+        ret = true;
+    }
+
+    return ret;
+}
+
+template <size_t capacity>
+static void AziotSendReadOnlyProperty(const StaticJsonDocument<capacity>& jsonDoc)
+{
+	char json[jsonDoc.capacity()];
+	serializeJson(jsonDoc, json, sizeof(json));
+
+	AziotHub_.SendTwinPatch("report", json);
+}
+
+template <size_t capacity>
+static void AziotSendTelemetry(const StaticJsonDocument<capacity>& jsonDoc)
 {
 	char json[jsonDoc.capacity()];
 	serializeJson(jsonDoc, json, sizeof(json));
@@ -620,6 +645,164 @@ static void ProjectLoop()
         }
 
         nextCaptureTime = millis() + CAPTURE_INTERVAL;
+    }
+}
+
+#elif defined(PROJECT_WIOTERMINAL_DIGITAL_SIGNAGE)
+
+#include <AceButton.h>
+using namespace ace_button;
+
+enum class ButtonId
+{
+    RIGHT = 0,
+    CENTER,
+    LEFT,
+};
+static const int BUTTON_NUMBER = 3;
+static AceButton Buttons_[BUTTON_NUMBER];
+static bool ButtonsClicked_[BUTTON_NUMBER];
+
+static void ButtonEventHandler(AceButton* button, uint8_t eventType, uint8_t buttonState)
+{
+    const uint8_t id = button->getId();
+    if (BUTTON_NUMBER <= id) return;
+
+    switch (eventType)
+    {
+    case AceButton::kEventClicked:
+        switch (static_cast<ButtonId>(id))
+        {
+        case ButtonId::RIGHT:
+            Serial.printf("Right button was clicked\n");
+            break;
+        case ButtonId::CENTER:
+            Serial.printf("Center button was clicked\n");
+            break;
+        case ButtonId::LEFT:
+            Serial.printf("Left button was clicked\n");
+            break;
+        }
+        ButtonsClicked_[id] = true;
+        break;
+    }
+}
+
+static void ButtonInit()
+{
+    Buttons_[static_cast<int>(ButtonId::RIGHT)].init(WIO_KEY_A, HIGH, static_cast<uint8_t>(ButtonId::RIGHT));
+    Buttons_[static_cast<int>(ButtonId::CENTER)].init(WIO_KEY_B, HIGH, static_cast<uint8_t>(ButtonId::CENTER));
+    Buttons_[static_cast<int>(ButtonId::LEFT)].init(WIO_KEY_C, HIGH, static_cast<uint8_t>(ButtonId::LEFT));
+
+    ButtonConfig* buttonConfig = ButtonConfig::getSystemButtonConfig();
+    buttonConfig->setEventHandler(ButtonEventHandler);
+    buttonConfig->setFeature(ButtonConfig::kFeatureClick);
+
+    for (int i = 0; i < BUTTON_NUMBER; i++) ButtonsClicked_[i] = false;
+}
+
+static void ButtonDoWork()
+{
+    for (int i = 0; static_cast<size_t>(i) < BUTTON_NUMBER; ++i)
+    {
+        Buttons_[i].check();
+    }
+}
+
+static void DisplayMessage(const std::string& message)
+{
+    Display_.Clear();
+    Display_.PrintMessage(message.c_str());
+}
+
+static std::string Message_ = "";
+static int RightButtonClickCount_ = 0;
+static int CenterButtonClickCount_ = 0;
+static int LeftButtonClickCount_ = 0;
+
+static void ReceivedTwinDocument(const char* json, const char* requestId)
+{
+	StaticJsonDocument<JSON_MAX_SIZE> doc;
+	if (deserializeJson(doc, json)) return;
+	if (doc["desired"]["$version"].isNull()) return;
+    
+    if (AziotUpdateWritableProperty("message", &Message_, doc["desired"]["$version"], doc["desired"], doc["reported"]))
+    {
+		Serial.printf("message = %s\n", Message_.c_str());
+    }
+
+    doc.clear();
+    doc["rightButtonClickCount"] = RightButtonClickCount_;
+    doc["centerButtonClickCount"] = CenterButtonClickCount_;
+    doc["leftButtonClickCount"] = LeftButtonClickCount_;
+    AziotSendReadOnlyProperty<JSON_MAX_SIZE>(doc);
+
+    DisplayMessage(Message_);
+}
+
+static void ReceivedTwinDesiredPatch(const char* json, const char* version)
+{
+	StaticJsonDocument<JSON_MAX_SIZE> doc;
+	if (deserializeJson(doc, json)) return;
+	if (doc["$version"].isNull()) return;
+
+    if (AziotUpdateWritableProperty("message", &Message_, doc["$version"], doc.as<JsonVariant>()))
+    {
+		Serial.printf("message = %s\n", Message_.c_str());
+
+        RightButtonClickCount_ = 0;
+        CenterButtonClickCount_ = 0;
+        LeftButtonClickCount_ = 0;
+
+        doc.clear();
+        doc["rightButtonClickCount"] = RightButtonClickCount_;
+        doc["centerButtonClickCount"] = CenterButtonClickCount_;
+        doc["leftButtonClickCount"] = LeftButtonClickCount_;
+        AziotSendReadOnlyProperty<JSON_MAX_SIZE>(doc);
+
+        DisplayMessage(Message_);
+    }
+}
+
+static void ProjectSetup()
+{
+    AziotHub_.ReceivedTwinDocumentCallback = ReceivedTwinDocument;
+    AziotHub_.ReceivedTwinDesiredPatchCallback = ReceivedTwinDesiredPatch;
+
+    ButtonInit();
+}
+
+static void ProjectLoop()
+{
+    ButtonDoWork();
+
+    if (AziotIsConnected())
+    {
+        bool clicked = false;
+        for (int i = 0; i < BUTTON_NUMBER; i++) if (ButtonsClicked_[i]) clicked = true;
+
+        if (clicked)
+        {
+            StaticJsonDocument<JSON_MAX_SIZE> doc;
+
+            if (ButtonsClicked_[static_cast<int>(ButtonId::RIGHT)])
+            {
+                doc["rightButtonClickCount"] = ++RightButtonClickCount_;
+                ButtonsClicked_[static_cast<int>(ButtonId::RIGHT)] = false;
+            }
+            if (ButtonsClicked_[static_cast<int>(ButtonId::CENTER)])
+            {
+                doc["centerButtonClickCount"] = ++CenterButtonClickCount_;
+                ButtonsClicked_[static_cast<int>(ButtonId::CENTER)] = false;
+            }
+            if (ButtonsClicked_[static_cast<int>(ButtonId::LEFT)])
+            {
+                doc["leftButtonClickCount"] = ++LeftButtonClickCount_;
+                ButtonsClicked_[static_cast<int>(ButtonId::LEFT)] = false;
+            }
+
+            AziotSendReadOnlyProperty<JSON_MAX_SIZE>(doc);
+        }
     }
 }
 
