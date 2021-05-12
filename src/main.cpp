@@ -650,6 +650,21 @@ static void ProjectLoop()
 
 #elif defined(PROJECT_WIOTERMINAL_DIGITAL_SIGNAGE)
 
+#include <HTTPClient.h>
+
+struct MessageType
+{
+    std::string ContentType;
+    std::string Content;
+};
+
+static MessageType Message_ = { .ContentType = "text", .Content = "" };
+static WiFiClientSecure client2;    // TODO
+
+static int RightButtonClickCount_ = 0;
+static int CenterButtonClickCount_ = 0;
+static int LeftButtonClickCount_ = 0;
+
 #include <AceButton.h>
 using namespace ace_button;
 
@@ -709,16 +724,114 @@ static void ButtonDoWork()
     }
 }
 
-static void DisplayMessage(const std::string& message)
+static bool DisplayMessageImageUrl(const std::string& content)
 {
+    StreamString payload;
+
+    Serial.printf("HTTPS GET %s\n", content.c_str());
+    HTTPClient https;
+    if (!https.begin(client2, content.c_str())) return false;
+    int httpCode = https.GET();
+    if (httpCode != HTTP_CODE_OK && httpCode != HTTP_CODE_MOVED_PERMANENTLY)
+    {
+        https.end();
+        return false;
+    }
+    payload = https.getString();
+    https.end();
+
+    const auto bitmap = &payload[0];
+    const auto bitmapSize = payload.length();
+
+    if (bitmapSize <= 14 + 40) return false;
+    if (bitmap[0] != 'B' || bitmap[1] != 'M') return false;
+    const uint32_t offset = *reinterpret_cast<int32_t*>(&bitmap[10]);
+    if (*reinterpret_cast<uint32_t*>(&bitmap[14]) != 40) return false;
+    const int32_t width = *reinterpret_cast<int32_t*>(&bitmap[18]);
+    const int32_t height = *reinterpret_cast<int32_t*>(&bitmap[22]);
+    if (*reinterpret_cast<uint16_t*>(&bitmap[26]) != 1) return false;
+    if (*reinterpret_cast<uint16_t*>(&bitmap[28]) != 1) return false;
+    if (*reinterpret_cast<uint16_t*>(&bitmap[30]) != 0) return false;
+
+    Serial.printf("bitmap is (%d,%d)\n", width, height);
+
+    const int lineSize = width / 32 * 4 + (width % 32 == 0 ? 0 : 4);
     Display_.Clear();
-    Display_.PrintMessage(message.c_str());
+    Gfx_.setColor(TFT_WHITE);
+    Gfx_.startWrite();
+    for (int y = 0; y < height; y++)
+    {
+        for (int x = 0; x < width; x++)
+        {
+            const bool bit = (bitmap[offset + (height - y - 1) * lineSize + x / 8] & 0x80 >> x % 8) != 0 ? true : false;
+            if (bit) Gfx_.writePixel((Gfx_.width() - width) / 2 + x, (Gfx_.height() - height) / 2 + y);
+        }
+        Serial.println();
+    }
+    Gfx_.endWrite();
+
+    return true;
 }
 
-static std::string Message_ = "";
-static int RightButtonClickCount_ = 0;
-static int CenterButtonClickCount_ = 0;
-static int LeftButtonClickCount_ = 0;
+static void DisplayMessage(const MessageType& message)
+{
+    Display_.Clear();
+
+    if (message.ContentType.compare("text") == 0)
+    {
+        Display_.PrintMessage(message.Content.c_str());
+    }
+    else if (message.ContentType.compare("imageUrl") == 0)
+    {
+        if (!DisplayMessageImageUrl(message.Content))
+        {
+            Display_.PrintMessage("(IMAGE)");
+        }
+    }
+}
+
+static void AziotSendConfirmContentTypeAndContent(const char* requestId, const char* name, const std::string& contentType, const std::string& content, int ackCode, int ackVersion)
+{
+	StaticJsonDocument<JSON_MAX_SIZE> doc;
+	doc[name]["value"]["contentType"] = contentType;
+	doc[name]["value"]["content"] = content;
+	doc[name]["ac"] = ackCode;
+	doc[name]["av"] = ackVersion;
+
+	char json[JSON_MAX_SIZE];
+	serializeJson(doc, json);
+
+	AziotHub_.SendTwinPatch(requestId, json);
+}
+
+static bool AziotUpdateWritablePropertyContentTypeAndContent(const char* name, std::string* contentType, std::string* content, const JsonVariant& desiredVersion, const JsonVariant& desired, const JsonVariant& reported = JsonVariant())
+{
+    bool ret = false;
+
+    JsonVariant desiredValue = desired[name];
+    JsonVariant reportedProperty = reported[name];
+
+	if (!desiredValue.isNull())
+    {
+        *contentType = desiredValue["contentType"].as<std::string>();
+        *content = desiredValue["content"].as<std::string>();
+        ret = true;
+    }
+
+    if (desiredValue.isNull())
+    {
+        if (reportedProperty.isNull())
+        {
+            AziotSendConfirmContentTypeAndContent("init", name, *contentType, *content, 200, 1);
+        }
+    }
+    else if (reportedProperty.isNull() || desiredVersion.as<int>() != reportedProperty["av"].as<int>())
+    {
+        AziotSendConfirmContentTypeAndContent("update", name, *contentType, *content, 200, desiredVersion.as<int>());
+    }
+
+    return ret;
+}
 
 static void ReceivedTwinDocument(const char* json, const char* requestId)
 {
@@ -726,9 +839,10 @@ static void ReceivedTwinDocument(const char* json, const char* requestId)
 	if (deserializeJson(doc, json)) return;
 	if (doc["desired"]["$version"].isNull()) return;
     
-    if (AziotUpdateWritableProperty("message", &Message_, doc["desired"]["$version"], doc["desired"], doc["reported"]))
+    if (AziotUpdateWritablePropertyContentTypeAndContent("message", &Message_.ContentType, &Message_.Content, doc["desired"]["$version"], doc["desired"], doc["reported"]))
     {
-		Serial.printf("message = %s\n", Message_.c_str());
+		Serial.printf("message.ContentType = %s\n", Message_.ContentType.c_str());
+		Serial.printf("message.Content = %s\n", Message_.Content.c_str());
     }
 
     doc.clear();
@@ -746,9 +860,10 @@ static void ReceivedTwinDesiredPatch(const char* json, const char* version)
 	if (deserializeJson(doc, json)) return;
 	if (doc["$version"].isNull()) return;
 
-    if (AziotUpdateWritableProperty("message", &Message_, doc["$version"], doc.as<JsonVariant>()))
+    if (AziotUpdateWritablePropertyContentTypeAndContent("message", &Message_.ContentType, &Message_.Content, doc["$version"], doc.as<JsonVariant>()))
     {
-		Serial.printf("message = %s\n", Message_.c_str());
+		Serial.printf("message.ContentType = %s\n", Message_.ContentType.c_str());
+		Serial.printf("message.Content = %s\n", Message_.Content.c_str());
 
         RightButtonClickCount_ = 0;
         CenterButtonClickCount_ = 0;
@@ -785,23 +900,21 @@ static void ProjectLoop()
         {
             StaticJsonDocument<JSON_MAX_SIZE> doc;
 
-            if (ButtonsClicked_[static_cast<int>(ButtonId::RIGHT)])
-            {
-                doc["rightButtonClickCount"] = ++RightButtonClickCount_;
-                ButtonsClicked_[static_cast<int>(ButtonId::RIGHT)] = false;
-            }
-            if (ButtonsClicked_[static_cast<int>(ButtonId::CENTER)])
-            {
-                doc["centerButtonClickCount"] = ++CenterButtonClickCount_;
-                ButtonsClicked_[static_cast<int>(ButtonId::CENTER)] = false;
-            }
-            if (ButtonsClicked_[static_cast<int>(ButtonId::LEFT)])
-            {
-                doc["leftButtonClickCount"] = ++LeftButtonClickCount_;
-                ButtonsClicked_[static_cast<int>(ButtonId::LEFT)] = false;
-            }
+            doc.clear();
+            if (ButtonsClicked_[static_cast<int>(ButtonId::RIGHT)]) doc["rightButton"] = "click";
+            if (ButtonsClicked_[static_cast<int>(ButtonId::CENTER)]) doc["centerButton"] = "click";
+            if (ButtonsClicked_[static_cast<int>(ButtonId::LEFT)]) doc["leftButton"] = "click";
+            AziotSendTelemetry<JSON_MAX_SIZE>(doc);
 
+            doc.clear();
+            if (ButtonsClicked_[static_cast<int>(ButtonId::RIGHT)]) doc["rightButtonClickCount"] = ++RightButtonClickCount_;
+            if (ButtonsClicked_[static_cast<int>(ButtonId::CENTER)]) doc["centerButtonClickCount"] = ++CenterButtonClickCount_;
+            if (ButtonsClicked_[static_cast<int>(ButtonId::LEFT)]) doc["leftButtonClickCount"] = ++LeftButtonClickCount_;
             AziotSendReadOnlyProperty<JSON_MAX_SIZE>(doc);
+
+            ButtonsClicked_[static_cast<int>(ButtonId::RIGHT)] = false;
+            ButtonsClicked_[static_cast<int>(ButtonId::CENTER)] = false;
+            ButtonsClicked_[static_cast<int>(ButtonId::LEFT)] = false;
         }
     }
 }
