@@ -2,7 +2,7 @@
 #include "ConfigurationMode.h"
 
 #include "Storage.h"
-#include "Display.h"
+#include "SimpleMenu.h"
 #include <Network/Signature.h>
 
 #define END_CHAR        ('\r')
@@ -19,7 +19,7 @@
 #define INBUF_SIZE      (1024)
 
 static Storage* Storage_;
-static Display* Display_;
+static SimpleMenu* Menu_;
 
 struct console_command 
 {
@@ -407,9 +407,10 @@ static bool CliHandleInput(char* inbuf)
     while (true);
 }
 
-[[noreturn]] void ConfigurationMode(Storage& storage, Display& display)
+[[noreturn]] void ConfigurationMode(Storage& storage, LGFX& gfx)
 {
-    Display_ = &display;
+    SimpleMenu Menu(gfx);
+    Menu_ = &Menu;
     Storage_ = &storage;
 
     enum {
@@ -420,11 +421,14 @@ static bool CliHandleInput(char* inbuf)
     menuItems.Add(MenuItem("CLI Mode", CLI_MODE));
     menuItems.Add(MenuItem("MSD Mode", MSD_MODE));
 
-    Display_->prepare(menuItems, "- Configuration Menu -");
-    MenuItem mode = Display_->waitForSelection();
+    Menu_->prepare(menuItems, "- Configuration Menu -");
+    MenuItem mode = Menu_->waitForSelection();
 
-    Display_->Clear();
-    Display_->PrintMessage(mode.label.c_str());
+    gfx.clear();
+    gfx.setTextColor(TFT_WHITE, TFT_BLACK);
+    gfx.setFont(&fonts::Font4);
+    gfx.setTextDatum(textdatum_t::middle_center);
+    gfx.drawString(mode.label.c_str(), gfx.width() / 2, gfx.height() / 2);
 
     switch (mode.id)
     {

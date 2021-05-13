@@ -1,6 +1,6 @@
 #pragma once
 
 class Storage;
-class Display;
+class LGFX;
 
-[[noreturn]] void ConfigurationMode(Storage& storage, Display& display);
+[[noreturn]] void ConfigurationMode(Storage& storage, LGFX& gfx);

@@ -951,7 +951,7 @@ void setup()
         digitalRead(WIO_KEY_B) == LOW &&
         digitalRead(WIO_KEY_C) == LOW   )
     {
-        ConfigurationMode(Storage_, Display_);
+        ConfigurationMode(Storage_, Gfx_);
     }
 
     ////////////////////

@@ -28,7 +28,7 @@ public:
 	int32_t MscWriteCB(uint32_t lba, uint8_t* buffer, uint32_t bufsize);
 	void MscFlushCB();
 
-protected:
+private:
 	Adafruit_USBD_MSC UsbMsc_;
 	uint32_t ReadLba_;
 	uint32_t ReadSize_;

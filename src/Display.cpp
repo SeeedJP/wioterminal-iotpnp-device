@@ -13,7 +13,6 @@ static String StringVFormat(const char* format, va_list arg)
 }
 
 Display::Display(LGFX& gfx) :
-    SimpleMenu(gfx),
     Gfx_(gfx)
 {
 }
