@@ -49,8 +49,8 @@ public:
     };
 
     SimpleMenu(LGFX& gfx);
-    void prepare(MenuItems items);
-    void prepare(MenuItems items, const char* title);
+    void init(MenuItems items);
+    void init(MenuItems items, const char* title);
     MenuItem waitForSelection();
     void eventHandler(AceButton* button, uint8_t eventType, uint8_t buttonState);
 

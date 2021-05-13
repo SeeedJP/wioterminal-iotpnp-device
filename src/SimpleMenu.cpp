@@ -14,12 +14,12 @@ SimpleMenu::SimpleMenu(LGFX& gfx) :
 
 static void buttonEventHandler(AceButton* button, uint8_t eventType, uint8_t buttonState);
 
-void SimpleMenu::prepare(MenuItems items)
+void SimpleMenu::init(MenuItems items)
 {
-    prepare(items, "- Menu -");
+    init(items, "- Menu -");
 }
 
-void SimpleMenu::prepare(MenuItems items, const char* title)
+void SimpleMenu::init(MenuItems items, const char* title)
 {
     pinMode(WIO_5S_UP, INPUT_PULLUP);
     pinMode(WIO_5S_DOWN, INPUT_PULLUP);

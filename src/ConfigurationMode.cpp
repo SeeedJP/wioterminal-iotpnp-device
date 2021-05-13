@@ -421,7 +421,7 @@ static bool CliHandleInput(char* inbuf)
     menuItems.Add(MenuItem("CLI Mode", CLI_MODE));
     menuItems.Add(MenuItem("MSD Mode", MSD_MODE));
 
-    Menu_->prepare(menuItems, "- Configuration Menu -");
+    Menu_->init(menuItems, "- Configuration Menu -");
     MenuItem mode = Menu_->waitForSelection();
 
     gfx.clear();
