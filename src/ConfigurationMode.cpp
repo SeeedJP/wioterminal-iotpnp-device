@@ -66,7 +66,7 @@ static void EnterBurnRTL8720Mode()
     pinMode(PIN_SERIAL2_RX, INPUT);
 
     // Initialize UART
-    Serial.beginWithoutDTR(115200);
+    Serial.begin(115200);
     auto oldBaud = Serial.baud();
     RTL8720D.begin(oldBaud);
     delay(500);
@@ -128,6 +128,8 @@ static void reset_factory_settings_command(int argc, char** argv)
 
 static void display_settings_command(int argc, char** argv)
 {
+    Storage_->Load();
+
     Serial.print(String::format("Wi-Fi SSID = %s" DLM, Storage_->WiFiSSID.c_str()));
     Serial.print(String::format("Wi-Fi password = %s" DLM, Storage_->WiFiPassword.c_str()));
     Serial.print(String::format("Id scope of Azure IoT DPS = %s" DLM, Storage_->IdScope.c_str()));

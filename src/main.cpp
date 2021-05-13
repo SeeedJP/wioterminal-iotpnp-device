@@ -7,11 +7,9 @@
 ////////////////////////////////////////////////////////////////////////////////
 // Storage
 
-#include <ExtFlashLoader.h>
 #include "Storage.h"
 
-static ExtFlashLoader::QSPIFlash Flash_;
-static Storage Storage_(Flash_);
+static Storage Storage_;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Display
@@ -931,6 +929,8 @@ void setup()
     ////////////////////
     // Load storage
 
+    Storage_.Init();
+    Storage_.Begin();
     Storage_.Load();
 
     ////////////////////
