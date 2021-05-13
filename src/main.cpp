@@ -559,95 +559,6 @@ static void ProjectLoop()
     }
 }
 
-#elif defined(PROJECT_WIOTERMINAL_DUST_HM3301)
-
-static GroveBoard Board_;
-static GrovePM25HM3301 Sensor_(&Board_.GroveI2C1);
-
-static unsigned long TelemetryInterval_ = TELEMETRY_INTERVAL;   // [sec.]
-
-static void ReceivedTwinDocument(const char* json, const char* requestId)
-{
-	StaticJsonDocument<JSON_MAX_SIZE> doc;
-	if (deserializeJson(doc, json)) return;
-	if (doc["desired"]["$version"].isNull()) return;
-    
-    if (AziotUpdateWritableProperty("telemetryInterval", &TelemetryInterval_, doc["desired"]["$version"], doc["desired"], doc["reported"]))
-    {
-		Serial.printf("telemetryInterval = %d\n", TelemetryInterval_);
-    }
-}
-
-static void ReceivedTwinDesiredPatch(const char* json, const char* version)
-{
-	StaticJsonDocument<JSON_MAX_SIZE> doc;
-	if (deserializeJson(doc, json)) return;
-	if (doc["$version"].isNull()) return;
-
-    if (AziotUpdateWritableProperty("telemetryInterval", &TelemetryInterval_, doc["$version"], doc.as<JsonVariant>()))
-    {
-		Serial.printf("telemetryInterval = %d\n", TelemetryInterval_);
-    }
-}
-
-static void ProjectSetup()
-{
-    Board_.GroveI2C1.Enable();
-    if (!Sensor_.Init())
-    {
-        Display_.Printf("ERROR: Sensor not found.\n");
-        abort();
-    }
-
-    AziotHub_.ReceivedTwinDocumentCallback = ReceivedTwinDocument;
-    AziotHub_.ReceivedTwinDesiredPatchCallback = ReceivedTwinDesiredPatch;
-}
-
-static void ProjectLoop()
-{
-    static unsigned long nextCaptureTime = 0;
-    static unsigned long nextTelemetrySendTime = 0;
-
-    if (millis() >= nextCaptureTime)
-    {
-        Sensor_.Read();
-        if (Sensor_.Concentration_1_Standard != INT_MAX)
-        {
-            const time_t now = TimeManager_.GetEpochTime();
-            char nowStr[32];
-            strftime(nowStr, sizeof(nowStr), "%H:%M:%S %Z", localtime(&now));
-            Display_.Printf("%s - ", nowStr);
-            Display_.Printf("%d[ug/m3] ", Sensor_.Concentration_2_5_Standard);
-            Display_.Printf("%d[#/l]\n", Sensor_.ParticleNumber_2_5);
-
-            if (millis() >= nextTelemetrySendTime)
-            {
-                if (AziotIsConnected())
-                {
-                    StaticJsonDocument<JSON_MAX_SIZE> doc;
-                    doc["concentration1"]["standard"] = Sensor_.Concentration_1_Standard;
-                    doc["concentration1"]["atmospheric"] = Sensor_.Concentration_1_Atmospheric;
-                    doc["concentration2_5"]["standard"] = Sensor_.Concentration_2_5_Standard;
-                    doc["concentration2_5"]["atmospheric"] = Sensor_.Concentration_2_5_Atmospheric;
-                    doc["concentration10"]["standard"] = Sensor_.Concentration_10_Standard;
-                    doc["concentration10"]["atmospheric"] = Sensor_.Concentration_10_Atmospheric;
-                    doc["particleNumber0_3"] = Sensor_.ParticleNumber_0_3;
-                    doc["particleNumber0_5"] = Sensor_.ParticleNumber_0_5;
-                    doc["particleNumber1"] = Sensor_.ParticleNumber_1;
-                    doc["particleNumber2_5"] = Sensor_.ParticleNumber_2_5;
-                    doc["particleNumber5"] = Sensor_.ParticleNumber_5;
-                    doc["particleNumber10"] = Sensor_.ParticleNumber_10;
-                    AziotSendTelemetry<JSON_MAX_SIZE>(doc);
-
-                    nextTelemetrySendTime = millis() + TelemetryInterval_ * 1000;
-                }
-            }
-        }
-
-        nextCaptureTime = millis() + CAPTURE_INTERVAL;
-    }
-}
-
 #elif defined(PROJECT_WIOTERMINAL_DIGITAL_SIGNAGE)
 
 #include <HTTPClient.h>
@@ -916,6 +827,95 @@ static void ProjectLoop()
             ButtonsClicked_[static_cast<int>(ButtonId::CENTER)] = false;
             ButtonsClicked_[static_cast<int>(ButtonId::LEFT)] = false;
         }
+    }
+}
+
+#elif defined(PROJECT_WIOTERMINAL_DUST_HM3301)
+
+static GroveBoard Board_;
+static GrovePM25HM3301 Sensor_(&Board_.GroveI2C1);
+
+static unsigned long TelemetryInterval_ = TELEMETRY_INTERVAL;   // [sec.]
+
+static void ReceivedTwinDocument(const char* json, const char* requestId)
+{
+	StaticJsonDocument<JSON_MAX_SIZE> doc;
+	if (deserializeJson(doc, json)) return;
+	if (doc["desired"]["$version"].isNull()) return;
+    
+    if (AziotUpdateWritableProperty("telemetryInterval", &TelemetryInterval_, doc["desired"]["$version"], doc["desired"], doc["reported"]))
+    {
+		Serial.printf("telemetryInterval = %d\n", TelemetryInterval_);
+    }
+}
+
+static void ReceivedTwinDesiredPatch(const char* json, const char* version)
+{
+	StaticJsonDocument<JSON_MAX_SIZE> doc;
+	if (deserializeJson(doc, json)) return;
+	if (doc["$version"].isNull()) return;
+
+    if (AziotUpdateWritableProperty("telemetryInterval", &TelemetryInterval_, doc["$version"], doc.as<JsonVariant>()))
+    {
+		Serial.printf("telemetryInterval = %d\n", TelemetryInterval_);
+    }
+}
+
+static void ProjectSetup()
+{
+    Board_.GroveI2C1.Enable();
+    if (!Sensor_.Init())
+    {
+        Display_.Printf("ERROR: Sensor not found.\n");
+        abort();
+    }
+
+    AziotHub_.ReceivedTwinDocumentCallback = ReceivedTwinDocument;
+    AziotHub_.ReceivedTwinDesiredPatchCallback = ReceivedTwinDesiredPatch;
+}
+
+static void ProjectLoop()
+{
+    static unsigned long nextCaptureTime = 0;
+    static unsigned long nextTelemetrySendTime = 0;
+
+    if (millis() >= nextCaptureTime)
+    {
+        Sensor_.Read();
+        if (Sensor_.Concentration_1_Standard != INT_MAX)
+        {
+            const time_t now = TimeManager_.GetEpochTime();
+            char nowStr[32];
+            strftime(nowStr, sizeof(nowStr), "%H:%M:%S %Z", localtime(&now));
+            Display_.Printf("%s - ", nowStr);
+            Display_.Printf("%d[ug/m3] ", Sensor_.Concentration_2_5_Standard);
+            Display_.Printf("%d[#/l]\n", Sensor_.ParticleNumber_2_5);
+
+            if (millis() >= nextTelemetrySendTime)
+            {
+                if (AziotIsConnected())
+                {
+                    StaticJsonDocument<JSON_MAX_SIZE> doc;
+                    doc["concentration1"]["standard"] = Sensor_.Concentration_1_Standard;
+                    doc["concentration1"]["atmospheric"] = Sensor_.Concentration_1_Atmospheric;
+                    doc["concentration2_5"]["standard"] = Sensor_.Concentration_2_5_Standard;
+                    doc["concentration2_5"]["atmospheric"] = Sensor_.Concentration_2_5_Atmospheric;
+                    doc["concentration10"]["standard"] = Sensor_.Concentration_10_Standard;
+                    doc["concentration10"]["atmospheric"] = Sensor_.Concentration_10_Atmospheric;
+                    doc["particleNumber0_3"] = Sensor_.ParticleNumber_0_3;
+                    doc["particleNumber0_5"] = Sensor_.ParticleNumber_0_5;
+                    doc["particleNumber1"] = Sensor_.ParticleNumber_1;
+                    doc["particleNumber2_5"] = Sensor_.ParticleNumber_2_5;
+                    doc["particleNumber5"] = Sensor_.ParticleNumber_5;
+                    doc["particleNumber10"] = Sensor_.ParticleNumber_10;
+                    AziotSendTelemetry<JSON_MAX_SIZE>(doc);
+
+                    nextTelemetrySendTime = millis() + TelemetryInterval_ * 1000;
+                }
+            }
+        }
+
+        nextCaptureTime = millis() + CAPTURE_INTERVAL;
     }
 }
 
