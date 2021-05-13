@@ -2,6 +2,7 @@
 #include "ConfigurationMode.h"
 
 #include "Storage.h"
+#include "Display.h"
 #include <Network/Signature.h>
 
 #define END_CHAR        ('\r')
@@ -18,6 +19,7 @@
 #define INBUF_SIZE      (1024)
 
 static Storage* Storage_;
+static Display* Display_;
 
 struct console_command 
 {
@@ -376,9 +378,10 @@ static bool CliHandleInput(char* inbuf)
     return true;
 }
 
-[[noreturn]] void ConfigurationMode(Storage& storage)
+[[noreturn]] static void CliMode()
 {
-    Storage_ = &storage;
+    Serial.begin(115200);
+    while(!Serial);
 
     print_help();
     Serial.print(PROMPT);
@@ -396,4 +399,43 @@ static bool CliHandleInput(char* inbuf)
 
         Serial.print(PROMPT);
     }
+}
+
+[[noreturn]] static void MsdMode()
+{
+    Storage_->Begin();
+    while (true);
+}
+
+[[noreturn]] void ConfigurationMode(Storage& storage, Display& display)
+{
+    Display_ = &display;
+    Storage_ = &storage;
+
+    enum {
+        CLI_MODE = 0,
+        MSD_MODE,
+    };
+    MenuItems menuItems;
+    menuItems.Add(MenuItem("CLI Mode", CLI_MODE));
+    menuItems.Add(MenuItem("MSD Mode", MSD_MODE));
+
+    Display_->prepare(menuItems, "- Configuration Menu -");
+    MenuItem mode = Display_->waitForSelection();
+
+    Display_->Clear();
+    Display_->PrintMessage(mode.label.c_str());
+
+    switch (mode.id)
+    {
+    case CLI_MODE:
+        CliMode();
+        break;
+
+    case MSD_MODE:
+        MsdMode();
+        break;
+    }
+
+    while (true);
 }

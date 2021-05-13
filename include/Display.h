@@ -1,8 +1,10 @@
 #pragma once
 
+#include "SimpleMenu.h"
+
 class LGFX;
 
-class Display
+class Display : public SimpleMenu
 {
 private:
     Display(const Display&) = delete;
