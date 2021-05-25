@@ -1,0 +1,19 @@
+{
+    "wifi": {
+        "ssid": "",
+        "password": ""
+    },
+    "azure": {
+        "connection": "hub",
+        "hub": {
+            "host": "",
+            "deviceId": "",
+            "symmetricKey": ""
+        },
+        "dps": {
+            "idScope": "",
+            "registrationId": "",
+            "symmetricKey": ""
+        }
+    }
+}

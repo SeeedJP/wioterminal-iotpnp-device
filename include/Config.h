@@ -1,5 +1,7 @@
 #pragma once
 
+extern const char CONFIG_FILE[];
+
 constexpr int DISPLAY_BRIGHTNESS = 127;         // 0-255
 
 #if defined(PROJECT_WIOTERMINAL_HUMAN_DETECTION_PIR)

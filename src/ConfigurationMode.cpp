@@ -403,23 +403,23 @@ static bool CliHandleInput(char* inbuf)
 
 [[noreturn]] static void MsdMode()
 {
-    Storage_->Begin();
+    Storage_->ActivateMsc();
     while (true);
 }
 
 [[noreturn]] void ConfigurationMode(Storage& storage, LGFX& gfx)
 {
+    Storage_ = &storage;
     SimpleMenu Menu(gfx);
     Menu_ = &Menu;
-    Storage_ = &storage;
 
     enum {
         CLI_MODE = 0,
         MSD_MODE,
     };
     MenuItems menuItems;
-    menuItems.Add(MenuItem("CLI Mode", CLI_MODE));
-    menuItems.Add(MenuItem("MSD Mode", MSD_MODE));
+    menuItems.Add(MenuItem{ .label = "CLI Mode", .id = CLI_MODE, });
+    menuItems.Add(MenuItem{ .label = "MSD Mode", .id = MSD_MODE, });
 
     Menu_->init(menuItems, "- Configuration Menu -");
     MenuItem mode = Menu_->waitForSelection();

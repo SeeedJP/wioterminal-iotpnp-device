@@ -1,7 +1,8 @@
 #pragma once
 
 #include <string>
-#include <Adafruit_TinyUSB.h>
+
+class Adafruit_USBD_MSC;
 
 class Storage
 {
@@ -16,23 +17,29 @@ public:
 	std::string RegistrationId;
 	std::string SymmetricKey;
 
-	Storage();
+	Storage(Adafruit_USBD_MSC& msc);
 	void Load();
 	void Save();
 	void Erase();
 
 	void Init();
-	void Begin();
-
-	int32_t MscReadCB(uint32_t lba, void* buffer, uint32_t bufsize);
-	int32_t MscWriteCB(uint32_t lba, uint8_t* buffer, uint32_t bufsize);
-	void MscFlushCB();
+	void ActivateMsc();
 
 private:
-	Adafruit_USBD_MSC UsbMsc_;
-	uint32_t ReadLba_;
-	uint32_t ReadSize_;
-	uint32_t WriteLba_;
-	uint32_t WriteSize_;
+	Adafruit_USBD_MSC& Msc_;
+	uint32_t MscReadLba_;
+	uint32_t MscReadSize_;
+	uint32_t MscWriteLba_;
+	uint32_t MscWriteSize_;
+
+	int32_t MscReadHandler(uint32_t lba, void* buffer, uint32_t bufsize);
+	int32_t MscWriteHandler(uint32_t lba, uint8_t* buffer, uint32_t bufsize);
+	void MscFlushHandler();
+
+	static Storage* Instance_;
+
+	static int32_t MscReadStaticHandler(uint32_t lba, void* buffer, uint32_t bufsize);
+	static int32_t MscWriteStaticHandler(uint32_t lba, uint8_t* buffer, uint32_t bufsize);
+	static void MscFlushStaticHandler();
 
 };

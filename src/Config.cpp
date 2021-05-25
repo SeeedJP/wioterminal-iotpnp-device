@@ -1,5 +1,7 @@
 #include "Config.h"
 
+const char CONFIG_FILE[] = "/settings.json";
+
 const char DPS_GLOBAL_DEVICE_ENDPOINT_HOST[] = "global.azure-devices-provisioning.net";
 
 #if defined(PROJECT_WIOTERMINAL_HUMAN_DETECTION_PIR)

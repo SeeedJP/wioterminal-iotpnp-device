@@ -6,15 +6,8 @@
 #include <AceButton.h>
 using namespace ace_button;
 
-class MenuItem
+struct MenuItem
 {
-public:
-    MenuItem(std::string label, uint32_t id) :
-        label(label), id(id)
-    {
-    };
-
-public:
     std::string label;
     uint32_t id;
 };
@@ -22,26 +15,30 @@ public:
 class MenuItems
 {
 public:
-    void Add(MenuItem item) {
+    void Add(const MenuItem& item)
+    {
         Items_.push_back(item);
-    };
+    }
 
-    std::size_t Size() {
+    size_t Size() const
+    {
         return Items_.size();
-    };
+    }
 
-    MenuItem Item(int i) {
+    const MenuItem& Item(int i)
+    {
         return Items_[i];
-    };
+    }
 
 private:
     std::vector<MenuItem> Items_;
+
 };
 
 class SimpleMenu
 {
 public:
-    enum EventId
+    enum class EventId
     {
         UP = 0,
         DOWN,
@@ -49,16 +46,16 @@ public:
     };
 
     SimpleMenu(LGFX& gfx);
-    void init(MenuItems items);
-    void init(MenuItems items, const char* title);
-    MenuItem waitForSelection();
+    void init(const MenuItems& items, const char* title);
+    const MenuItem& waitForSelection();
+    
     void eventHandler(AceButton* button, uint8_t eventType, uint8_t buttonState);
 
 private:
     void drawTitle(const char* title);
     void drawItems();
     void updateCursor();
-    void registerMenuItems(MenuItems items);
+    void registerMenuItems(const MenuItems& items);
 
 private:
     LGFX& Gfx_;
@@ -71,4 +68,9 @@ private:
     int8_t currentCursor;
     int8_t previousCursor;
     bool pressed;
+
+    static SimpleMenu* SimpleMenu_;
+
+    static void buttonEventHandler(AceButton* button, uint8_t eventType, uint8_t buttonState);
+
 };
