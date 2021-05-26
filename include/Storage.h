@@ -13,9 +13,10 @@ private:
 public:
 	std::string WiFiSSID;
 	std::string WiFiPassword;
-	std::string IdScope;
-	std::string RegistrationId;
-	std::string SymmetricKey;
+	std::string AzureConnection;
+	std::string AzureDpsIdScope;
+	std::string AzureDpsRegistrationId;
+	std::string AzureDpsSymmetricKey;
 
 	Storage(Adafruit_USBD_MSC& msc);
 	void Load();

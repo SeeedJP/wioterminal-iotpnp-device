@@ -118,9 +118,9 @@ static void display_settings_command(int argc, char** argv)
 
     Serial.print(String::format("Wi-Fi SSID = %s" DLM, Storage_->WiFiSSID.c_str()));
     Serial.print(String::format("Wi-Fi password = %s" DLM, Storage_->WiFiPassword.c_str()));
-    Serial.print(String::format("Id scope of Azure IoT DPS = %s" DLM, Storage_->IdScope.c_str()));
-    Serial.print(String::format("Registration id of Azure IoT DPS = %s" DLM, Storage_->RegistrationId.c_str()));
-    Serial.print(String::format("Symmetric key of Azure IoT DPS = %s" DLM, Storage_->SymmetricKey.c_str()));
+    Serial.print(String::format("Id scope of Azure IoT DPS = %s" DLM, Storage_->AzureDpsIdScope.c_str()));
+    Serial.print(String::format("Registration id of Azure IoT DPS = %s" DLM, Storage_->AzureDpsRegistrationId.c_str()));
+    Serial.print(String::format("Symmetric key of Azure IoT DPS = %s" DLM, Storage_->AzureDpsSymmetricKey.c_str()));
 }
 
 static void wifissid_command(int argc, char** argv)
@@ -159,7 +159,8 @@ static void az_idscope_command(int argc, char** argv)
         return;
     }
 
-    Storage_->IdScope = argv[1];
+    Storage_->AzureDpsIdScope = argv[1];
+    Storage_->AzureConnection = "dps";
     Storage_->Save();
 
     Serial.print("Set id scope successfully." DLM);
@@ -173,7 +174,8 @@ static void az_regid_command(int argc, char** argv)
         return;
     }
 
-    Storage_->RegistrationId = argv[1];
+    Storage_->AzureDpsRegistrationId = argv[1];
+    Storage_->AzureConnection = "dps";
     Storage_->Save();
 
     Serial.print("Set registration id successfully." DLM);
@@ -187,7 +189,8 @@ static void az_symkey_command(int argc, char** argv)
         return;
     }
 
-    Storage_->SymmetricKey = argv[1];
+    Storage_->AzureDpsSymmetricKey = argv[1];
+    Storage_->AzureConnection = "dps";
     Storage_->Save();
 
     Serial.print("Set symmetric key successfully." DLM);
@@ -201,9 +204,10 @@ static void az_iotc_command(int argc, char** argv)
         return;
     }
 
-    Storage_->IdScope = argv[1];
-    Storage_->RegistrationId = argv[3];
-    Storage_->SymmetricKey = ComputeDerivedSymmetricKey(argv[2], argv[3]);
+    Storage_->AzureDpsIdScope = argv[1];
+    Storage_->AzureDpsRegistrationId = argv[3];
+    Storage_->AzureDpsSymmetricKey = ComputeDerivedSymmetricKey(argv[2], argv[3]);
+    Storage_->AzureConnection = "dps";
     Storage_->Save();
 
     Serial.print("Set connection information of Azure IoT Central successfully." DLM);

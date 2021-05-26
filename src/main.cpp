@@ -63,13 +63,13 @@ static void SyncTimeServer()
 static bool DeviceProvisioning()
 {
 	Display_.Printf("Device provisioning:\n");
-    Display_.Printf(" Id scope = %s\n", Storage_.IdScope.c_str());
-    Display_.Printf(" Registration id = %s\n", Storage_.RegistrationId.c_str());
+    Display_.Printf(" Id scope = %s\n", Storage_.AzureDpsIdScope.c_str());
+    Display_.Printf(" Registration id = %s\n", Storage_.AzureDpsRegistrationId.c_str());
 
 	AziotDps aziotDps;
 	aziotDps.SetMqttPacketSize(MQTT_PACKET_SIZE);
 
-    if (aziotDps.RegisterDevice(DPS_GLOBAL_DEVICE_ENDPOINT_HOST, Storage_.IdScope, Storage_.RegistrationId, Storage_.SymmetricKey, MODEL_ID, TimeManager_.GetEpochTime() + TOKEN_LIFESPAN, &HubHost_, &DeviceId_) != 0)
+    if (aziotDps.RegisterDevice(DPS_GLOBAL_DEVICE_ENDPOINT_HOST, Storage_.AzureDpsIdScope, Storage_.AzureDpsRegistrationId, Storage_.AzureDpsSymmetricKey, MODEL_ID, TimeManager_.GetEpochTime() + TOKEN_LIFESPAN, &HubHost_, &DeviceId_) != 0)
     {
         Display_.Printf("ERROR: RegisterDevice()\n");
 		return false;
@@ -103,7 +103,7 @@ static void AziotDoWork()
             if (now >= connectTime)
             {
                 Serial.printf("Connecting to Azure IoT Hub...\n");
-                if (AziotHub_.Connect(HubHost_, DeviceId_, Storage_.SymmetricKey, MODEL_ID, now + TOKEN_LIFESPAN) != 0)
+                if (AziotHub_.Connect(HubHost_, DeviceId_, Storage_.AzureDpsSymmetricKey, MODEL_ID, now + TOKEN_LIFESPAN) != 0)
                 {
                     Serial.printf("ERROR: Try again in 5 seconds\n");
                     connectTime = TimeManager_.GetEpochTime() + 5;

@@ -53,9 +53,10 @@ void Storage::Load()
 		{
 			WiFiSSID = doc["wifi"]["ssid"].as<std::string>();
 			WiFiPassword = doc["wifi"]["password"].as<std::string>();
-			IdScope = doc["azure"]["dps"]["idScope"].as<std::string>();
-			RegistrationId = doc["azure"]["dps"]["registrationId"].as<std::string>();
-			SymmetricKey = doc["azure"]["dps"]["symmetricKey"].as<std::string>();
+			AzureConnection = doc["azure"]["connection"].as<std::string>();
+			AzureDpsIdScope = doc["azure"]["dps"]["idScope"].as<std::string>();
+			AzureDpsRegistrationId = doc["azure"]["dps"]["registrationId"].as<std::string>();
+			AzureDpsSymmetricKey = doc["azure"]["dps"]["symmetricKey"].as<std::string>();
 
 			loaded = true;
 		}
@@ -71,9 +72,10 @@ void Storage::Load()
 	{
 		WiFiSSID.clear();
 		WiFiPassword.clear();
-		IdScope.clear();
-		RegistrationId.clear();
-		SymmetricKey.clear();
+		AzureConnection.clear();
+		AzureDpsIdScope.clear();
+		AzureDpsRegistrationId.clear();
+		AzureDpsSymmetricKey.clear();
 	}
 }
 
@@ -85,9 +87,10 @@ void Storage::Save()
 	StaticJsonDocument<JSON_MAX_SIZE> doc;
 	doc["wifi"]["ssid"] = WiFiSSID;
 	doc["wifi"]["password"] = WiFiPassword;
-	doc["azure"]["dps"]["idScope"] = IdScope;
-	doc["azure"]["dps"]["registrationId"] = RegistrationId;
-	doc["azure"]["dps"]["symmetricKey"] = SymmetricKey;
+	doc["azure"]["connection"] = "dps";
+	doc["azure"]["dps"]["idScope"] = AzureDpsIdScope;
+	doc["azure"]["dps"]["registrationId"] = AzureDpsRegistrationId;
+	doc["azure"]["dps"]["symmetricKey"] = AzureDpsSymmetricKey;
 
 	serializeJsonPretty(doc, file);
 	file.close();
@@ -97,9 +100,10 @@ void Storage::Erase()
 {
 	WiFiSSID.clear();
 	WiFiPassword.clear();
-	IdScope.clear();
-	RegistrationId.clear();
-	SymmetricKey.clear();
+	AzureConnection.clear();
+	AzureDpsIdScope.clear();
+	AzureDpsRegistrationId.clear();
+	AzureDpsSymmetricKey.clear();
 
 	Save();
 }
