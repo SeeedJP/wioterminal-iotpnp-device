@@ -29,7 +29,6 @@ struct console_command
 };
 
 static void help_command(int argc, char** argv);
-static void burn_rtl8720_command(int argc, char** argv);
 static void reset_factory_settings_command(int argc, char** argv);
 static void display_settings_command(int argc, char** argv);
 static void wifissid_command(int argc, char** argv);
@@ -42,7 +41,6 @@ static void az_iotc_command(int argc, char** argv);
 static const struct console_command cmds[] = 
 {
   {"help"                  , "Help document"                                  , help_command                   },
-  {"burn_rtl8720"          , "Enter the Burn RTL8720 Firmware mode"           , burn_rtl8720_command           },
   {"reset_factory_settings", "Reset factory settings"                         , reset_factory_settings_command },
   {"show_settings"         , "Display settings"                               , display_settings_command       },
   {"set_wifissid"          , "Set Wi-Fi SSID"                                 , wifissid_command               },
@@ -104,20 +102,6 @@ static void print_help()
 static void help_command(int argc, char** argv)
 {
     print_help();
-}
-
-static void burn_rtl8720_command(int argc, char** argv)
-{
-    Serial.print("Enter the Burn RTL8720 Firmware mode." DLM);
-    Serial.print("[Windows]" DLM);
-    Serial.print("  ambd_flash_tool.exe erase" DLM);
-    Serial.print("  ambd_flash_tool.exe flash -d [RTL8720-firmware-path]" DLM);
-    Serial.print("[macOS/Linux]" DLM);
-    Serial.print("  python3 ambd_flash_tool.py erase" DLM);
-    Serial.print("  python3 ambd_flash_tool.py flash -d [RTL8720-firmware-path]" DLM);
-    delay(1000);
-
-    EnterBurnRTL8720Mode();
 }
 
 static void reset_factory_settings_command(int argc, char** argv)
