@@ -46,7 +46,7 @@ int AziotHub::Connect(const std::string& host, const std::string& deviceId, cons
     Serial.print(" MQTT username = ");
     Serial.println(HubClient_.GetMqttUsername().c_str());
 
-    Tcp_.setCACert(CERT_BALTIMORE_CYBERTRUST_ROOT_CA);
+    Tcp_.setCACert(CA_CERTS);
     Mqtt_.setBufferSize(MqttPacketSize_);
     Mqtt_.setServer(host.c_str(), 8883);
     Mqtt_.setCallback(MqttSubscribeCallback);

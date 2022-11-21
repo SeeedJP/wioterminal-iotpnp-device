@@ -29,7 +29,7 @@ int AziotDps::RegisterDevice(const std::string& endpointHost, const std::string&
     if (DpsClient_.SetSAS(symmetricKey.c_str(), expirationEpochTime, GenerateEncryptedSignature) != 0) return -2;
 
 	PubSubClient mqtt(Tcp_);
-    Tcp_.setCACert(CERT_BALTIMORE_CYBERTRUST_ROOT_CA);
+    Tcp_.setCACert(CA_CERTS);
     mqtt.setBufferSize(MqttPacketSize_);
     mqtt.setServer(endpointHost.c_str(), 8883);
     mqtt.setCallback(AziotDps::MqttSubscribeCallback);
