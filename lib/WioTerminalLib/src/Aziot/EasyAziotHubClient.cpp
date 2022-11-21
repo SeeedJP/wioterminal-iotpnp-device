@@ -1,6 +1,6 @@
 #include "Aziot/EasyAziotConfig.h"
 #include "Aziot/EasyAziotHubClient.h"
-#include <azure/core/az_span.h>
+#include <az_span.h>
 
 static inline const az_span az_span_create_from_string(const std::string& str)
 {

@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 #include <functional>
-#include <azure/iot/az_iot_hub_client.h>
+#include <az_iot_hub_client.h>
 
 class EasyAziotHubClient
 {

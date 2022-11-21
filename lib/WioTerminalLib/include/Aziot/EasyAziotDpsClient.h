@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 #include <functional>
-#include <azure/iot/az_iot_provisioning_client.h>
+#include <az_iot_provisioning_client.h>
 
 class EasyAziotDpsClient
 {
